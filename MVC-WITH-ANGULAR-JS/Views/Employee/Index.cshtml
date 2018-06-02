@@ -1,0 +1,184 @@
+﻿@model MVC_WITH_ANGULAR_JS.Models.EMPLOYEE
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div ng-controller="EmployeeController" ng-init="GetAllData()" class="divList">
+    <p class="divHead">List of Employee</p>
+    <table cellpadding="12" class="table table-bordered table-hover">
+        <tr>
+            <td>
+                <b>ID</b>
+            </td>
+            <td>
+                <b>Name</b>
+            </td>
+            <td>
+                <b>City</b>
+            </td>
+            <td>
+                <b>Age</b>
+            </td>
+            <td>
+                <b>Actions</b>
+            </td>
+        </tr>
+        <tr ng-repeat="Emp in employees">
+            <td>
+                {{Emp.Emp_Id}}
+            </td>
+            <td>
+                {{Emp.Emp_Name}}
+            </td>
+            <td>
+                {{Emp.Emp_City}}
+            </td>
+            <td>
+                {{Emp.Emp_Age}}
+            </td>
+            <td>
+                <input type="button" class="btn btn-warning" value="Update" ng-click="UpdateEmp(Emp)" />
+                <input type="button" class="btn btn-danger" value="Delete" ng-click="DeleteEmp(Emp)" />
+            </td>
+        </tr>
+    </table>
+    <div class="form-horizontal" role="form">
+        <div class="container">
+            <div class="row">
+                <h2>
+                    <span id="spn">Add New Employee</span>
+                </h2>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 col-lg-4">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Name:</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="inputEmail" placeholder="Name" ng-model="EmpName">
+                            @*@Html.TextBoxFor(m => m.Emp_Name, htmlAttributes: new { @class = "form-control", placeholder = "Name", @ngmodel = "EMPLOYEE.EmpName" })*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">City:</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="inputPassword" placeholder="City" ng-model="EmpCity">
+                            @*@Html.TextBoxFor(m => m.Emp_City, htmlAttributes: new { @class = "form-control", placeholder = "City", @ngmodel = "EMPLOYEE.EmpCity" })*@
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-4">
+                    <div class="form-group">
+                        <label class="col-md-4 control-label">Age:</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="inputLabel3" placeholder="Age" ng-model="EmpAge">
+                            @*@Html.TextBoxFor(m => m.Emp_Age, htmlAttributes: new { @class = "form-control", placeholder = "Age", @ngmodel = "EMPLOYEE.EmpAge" })*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+            <div class="row">
+                <div class="col-sm-6 col-lg-4">                    
+                    <button type="button" id="btnSave" value="Submit" class="btn btn-lg btn-info" ng-click="InsertData()">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @Html.Hidden("EmpID_")
+</div>
+
+<script type="text/javascript">
+    app.controller("EmployeeController", function ($scope, $http) {
+        $scope.InsertData = function () {
+            var Action = document.getElementById("btnSave").getAttribute("value");
+            if (Action == "Submit") {
+                $scope.Employe = {};
+                $scope.Employe.Emp_Name = $scope.EmpName;
+                $scope.Employe.Emp_City = $scope.EmpCity;
+                $scope.Employe.Emp_Age = $scope.EmpAge;
+
+                alert($scope.Employe.Emp_Name);
+                alert($scope.Employe.Emp_City);
+                alert($scope.Employe.Emp_Age);
+                
+                $http({
+                    method: "post",
+                    url: "/Employee/InsertEmployee",
+                    datatype: "json",
+                    data: JSON.stringify($scope.Employe)
+                }).then(function (response) {
+                    alert(response.data);
+                    $scope.GetAllData();
+                    $scope.EmpName = "";
+                    $scope.EmpCity = "";
+                    $scope.EmpAge = "";
+                })
+            }
+            else {
+                $scope.Employe = {};
+                $scope.Employe.Emp_Name = $scope.EmpName;
+                $scope.Employe.Emp_City = $scope.EmpCity;
+                $scope.Employe.Emp_Age = $scope.EmpAge;
+                $scope.Employe.Emp_Id = document.getElementById("EmpID_").value;
+                $http({
+                    method: "post",
+                    url: "/Employee/UpdateEmployee",
+                    datatype: "json",
+                    data: JSON.stringify($scope.Employe)
+                }).then(function (response) {
+                    alert(response.data);
+                    $scope.GetAllData();
+                    $scope.EmpName = "";
+                    $scope.EmpCity = "";
+                    $scope.EmpAge = "";
+                    document.getElementById("btnSave").setAttribute("value", "Submit");
+                    document.getElementById("btnSave").style.backgroundColor = "cornflowerblue";
+                    document.getElementById("spn").innerHTML = "Add New Employee";
+                })
+            }
+
+        }
+        $scope.GetAllData = function () {
+            $http({
+                method: "get",
+                url: "/Employee/GetAllEmployee"
+            }).then(function (response) {
+                $scope.employees = response.data;
+            }, function () {
+                alert("Error Occur");
+            })
+        };
+
+        $scope.DeleteEmp = function (Emp) {
+            $http({
+                method: "post",
+                url: "/Employee/DeleteEmployee",
+                datatype: "json",
+                data: JSON.stringify(Emp)
+            }).then(function (response) {
+                alert(response.data);
+                $scope.GetAllData();
+            })
+        };
+
+        $scope.UpdateEmp = function (Emp) {
+            document.getElementById("EmpID_").value = Emp.Emp_Id;
+            $scope.EmpName = Emp.Emp_Name;
+            $scope.EmpCity = Emp.Emp_City;
+            $scope.EmpAge = Emp.Emp_Age;
+            document.getElementById("btnSave").setAttribute("value", "Update");
+            document.getElementById("btnSave").style.backgroundColor = "Yellow";
+            document.getElementById("btnSave").style.color = "black";
+            document.getElementById("spn").innerHTML = "Update Employee Information";
+        }
+
+    });
+
+</script>
+
+
+
